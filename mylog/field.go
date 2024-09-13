@@ -15,17 +15,14 @@ type myContext interface {
 	SetRequest(r *http.Request)
 }
 
-// プリミティブ型は適当な値を入れられてしまうのでstructを使う
 type mylogField struct {
 	keyName string
 }
 
-// stringer interface implementation
 func (f *mylogField) String() string {
 	return f.keyName
 }
 
-// 検索性を保つため、フィールドを制限している
 var (
 	// Basic fields
 	Method = mylogField{keyName: "method"}
