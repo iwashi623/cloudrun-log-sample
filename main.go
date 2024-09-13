@@ -57,10 +57,10 @@ func simpleUserHandler(c echo.Context) error {
 func simpleUserWithErrorHandler(c echo.Context) error {
 	userID := c.Param("user_id")
 	if err := hoge(); err != nil {
-		fmt.Println("simpleHandlerWithError user_id:", userID)
-		return c.String(http.StatusInternalServerError, "simpleHandlerWithError Error, user_id: "+userID)
+		fmt.Println("simpleHandlerWithErrorでエラーが発生しました user_id:", userID)
+		return c.String(http.StatusInternalServerError, "simpleHandlerWithError Error")
 	}
-	return c.String(http.StatusOK, "simpleHandlerWithError OK, user_id: "+userID)
+	return c.String(http.StatusOK, "simpleHandlerWithError OK")
 }
 
 func postsHandler(c echo.Context) error {
