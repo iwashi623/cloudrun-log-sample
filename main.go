@@ -13,12 +13,12 @@ import (
 
 func main() {
 	e := echo.New()
-	projectID := os.Getenv("PROJECT_ID")
-	fmt.Println("projectID:", projectID)
+	// projectID := os.Getenv("PROJECT_ID")
 
-	sampleGroup := e.Group("/simple")
-	sampleGroup.GET("/:user_id", simpleUserHandler)
-	sampleGroup.GET("/:user_id/with_error", simpleUserWithErrorHandler)
+	simpleGroup := e.Group("/simple")
+	simpleGroup.GET("/:user_id", simpleUserHandler)
+	simpleGroup.GET("/:user_id/with_error", simpleUserWithErrorHandler)
+	simpleGroup.GET("/:user_id/multi_log", simpleUserMultilogHandler)
 
 	slogGrop := e.Group("/slog")
 	slogGrop.Use(slogSetUp)
@@ -49,6 +49,15 @@ func simpleUserWithErrorHandler(c echo.Context) error {
 	return c.String(http.StatusOK, "simpleHandlerWithError OK")
 }
 
+func simpleUserMultilogHandler(c echo.Context) error {
+	userID := c.Param("user_id")
+	if err := multiLog(); err != nil {
+		fmt.Println("simpleUserMultilogHandlerでエラーが発生しました user_id:", userID)
+		return c.String(http.StatusInternalServerError, "simpleUserMultilogHandler Error")
+	}
+	return c.String(http.StatusOK, "simpleUserMultilogHandler OK")
+}
+
 func slogSetUp(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		slogHandler := mylog.NewHandler(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: mylog.GoogleMessageReplacer}), mylog.SourceOption{Enabled: true, KeyName: mylog.GoogleSourceKeyName})
@@ -58,6 +67,76 @@ func slogSetUp(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func hoge() error {
+	return fmt.Errorf("error")
+}
+
+// ログに出すための適当な文字列が入ったスライス
+var strs = []string{
+	"hoge",
+	"fuga",
+	"piyo",
+	"foo",
+	"bar",
+	"baz",
+	"qux",
+	"quux",
+	"corge",
+	"grault",
+	"garply",
+	"waldo",
+	"fred",
+	"plugh",
+	"xyzzy",
+	"thud",
+	"hogehoge",
+	"fugafuga",
+	"piyopiyo",
+	"foofoo",
+	"barbar",
+	"bazbaz",
+	"quxqux",
+	"quuxquux",
+	"corgecorge",
+	"graultgrault",
+	"garplygarply",
+	"waldowaldo",
+	"fredfred",
+	"plughplugh",
+	"xyzzyxyzzy",
+	"thudthud",
+	"hogehogehoge",
+	"fugafugafuga",
+	"piyopiyopiyo",
+	"foofoofoo",
+	"barbarbar",
+	"bazbazbaz",
+	"quxquxqux",
+	"quuxquuxquux",
+	"corgecorgecorge",
+	"graultgraultgrault",
+	"garplygarplygarply",
+	"waldowaldowaldo",
+	"fredfredfred",
+	"plughplughplugh",
+	"xyzzyxyzzyxyzzy",
+	"thudthudthud",
+	"hogehogehogehoge",
+	"fugafugafugafuga",
+	"piyopiyopiyopiyo",
+	"foofoofoofoo",
+	"barbarbarbar",
+	"bazbazbazbaz",
+	"quxquxquxqux",
+	"quuxquuxquuxquux",
+	"corgecorgecorgecorge",
+	"graultgraultgraultgrault",
+}
+
+func multiLog() error {
+	count := rand.Intn(50)
+	for i := 0; i < count; i++ {
+		fmt.Println(strs[rand.Intn(len(strs))])
+	}
 	return fmt.Errorf("error")
 }
 
