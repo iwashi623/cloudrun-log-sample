@@ -15,12 +15,6 @@ func main() {
 	e := echo.New()
 	projectID := os.Getenv("PROJECT_ID")
 	fmt.Println("projectID:", projectID)
-	e.GET("/", hello)
-	e.GET("/health", func(c echo.Context) error {
-		return c.String(http.StatusOK, "OK")
-	})
-	e.GET("/posts", postsHandler)
-	e.GET("/posts/:post_id", postHandler)
 
 	sampleGroup := e.Group("/simple")
 	sampleGroup.GET("/:user_id", simpleUserHandler)
@@ -28,8 +22,6 @@ func main() {
 
 	slogGrop := e.Group("/slog")
 	slogGrop.Use(slogSetUp)
-	slogGrop.GET("/hello", hello)
-	slogGrop.GET("/posts", postsHandler)
 
 	e.GET("/random", func(c echo.Context) error {
 		fmt.Println("start halfHandler")
@@ -42,10 +34,6 @@ func main() {
 	})
 
 	e.Logger.Fatal(e.Start(":9090"))
-}
-
-func hello(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, World!")
 }
 
 func simpleUserHandler(c echo.Context) error {
@@ -61,17 +49,6 @@ func simpleUserWithErrorHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "simpleHandlerWithError Error")
 	}
 	return c.String(http.StatusOK, "simpleHandlerWithError OK")
-}
-
-func postsHandler(c echo.Context) error {
-	fmt.Println("postsHandler")
-	return c.String(http.StatusOK, "posts")
-}
-
-func postHandler(c echo.Context) error {
-	id := c.Param("post_id")
-	fmt.Println("postHandler post_id:", id)
-	return c.String(http.StatusOK, "post_id: "+id)
 }
 
 func slogSetUp(next echo.HandlerFunc) echo.HandlerFunc {
