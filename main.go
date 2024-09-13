@@ -25,16 +25,6 @@ func main() {
 	slogGrop.Use(defaultLogFunc(projectID))
 	slogGrop.GET("/:user_id/multi_log", slogUserMultiHandler)
 
-	// e.GET("/random", func(c echo.Context) error {
-	// 	fmt.Println("start halfHandler")
-	// 	// 1か0をランダムで返す
-	// 	if oneInFive() {
-	// 		return c.String(http.StatusInternalServerError, "エラーが発生しました")
-	// 	}
-
-	// 	return c.String(http.StatusOK, "成功しました")
-	// })
-
 	e.Logger.Fatal(e.Start(":9090"))
 }
 
@@ -53,7 +43,7 @@ func simpleUserWithErrorHandler(c echo.Context) error {
 
 func simpleUserMultilogHandler(c echo.Context) error {
 	userID := c.Param("user_id")
-	if err := multiLog(); err != nil {
+	if err := multiLogByFmt(); err != nil {
 		fmt.Println("simpleUserMultilogHandlerでエラーが発生しました user_id:", userID)
 		return c.String(http.StatusInternalServerError, "simpleUserMultilogHandler Error")
 	}
@@ -126,7 +116,7 @@ var strs = []string{
 	"graultgraultgraultgrault",
 }
 
-func multiLog() error {
+func multiLogByFmt() error {
 	count := rand.Intn(50)
 	for i := 0; i < count; i++ {
 		fmt.Println(strs[rand.Intn(len(strs))])
@@ -134,9 +124,13 @@ func multiLog() error {
 	return fmt.Errorf("error")
 }
 
-// func oneInFive() bool {
-// 	return rand.Intn(5) == 0
-// }
+func multiLogBySlog(ctx echo.Context) error {
+	count := rand.Intn(50)
+	for i := 0; i < count; i++ {
+		mylog.InfoContext(ctx, strs[rand.Intn(len(strs))])
+	}
+	return fmt.Errorf("error")
+}
 
 func initLogger(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -165,7 +159,7 @@ func slogUserMultiHandler(c echo.Context) error {
 	userID := c.Param("user_id")
 	mylog.WithValue(c, mylog.UserID, userID)
 
-	if err := multiLog(); err != nil {
+	if err := multiLogBySlog(c); err != nil {
 		mylog.ErrorContext(c, "slogUserMultiHandlerでエラーが発生しました", err)
 		return c.String(http.StatusInternalServerError, "slogUserMultiHandler Error")
 	}
