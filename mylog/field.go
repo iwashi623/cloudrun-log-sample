@@ -104,20 +104,16 @@ func WithValue(dealCtx myContext, key mylogField, value any) {
 
 // WithTrace traceIDをログ出力用のcontextにセットする
 func WithTrace(dealCtx myContext, projectID string) {
-	traceID := getTraceID(dealCtx.Request())
-	if traceID == "" {
+	traceID := ""
+	if traceID = getTraceID(dealCtx.Request()); traceID == "" {
 		traceID = strings.Replace(uuid.New().String(), "-", "", -1) // googleのtraceIDは32文字の16進数ハイフンなしの文字列
-		trace := fmt.Sprintf("projects/%s/traces/%s", projectID, traceID)
-		ctx := dealCtx.Request().Context()
-		ctx = withValue(ctx, GoogleTraceKeyName, trace)
-		dealCtx.SetRequest(dealCtx.Request().WithContext(ctx))
 		WarnContext(dealCtx, "traceID not found in header, generated new traceID")
-	} else {
-		trace := fmt.Sprintf("projects/%s/traces/%s", projectID, traceID)
-		ctx := dealCtx.Request().Context()
-		ctx = withValue(ctx, GoogleTraceKeyName, trace)
-		dealCtx.SetRequest(dealCtx.Request().WithContext(ctx))
 	}
+
+	trace := fmt.Sprintf("projects/%s/traces/%s", projectID, traceID)
+	ctx := dealCtx.Request().Context()
+	ctx = withValue(ctx, GoogleTraceKeyName, trace)
+	dealCtx.SetRequest(dealCtx.Request().WithContext(ctx))
 }
 
 // headerからtraceIDを抽出する
