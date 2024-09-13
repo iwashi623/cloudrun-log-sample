@@ -56,8 +56,11 @@ func simpleUserHandler(c echo.Context) error {
 
 func simpleUserWithErrorHandler(c echo.Context) error {
 	userID := c.Param("user_id")
-	fmt.Println("simpleHandlerWithError user_id:", userID)
-	return c.String(http.StatusInternalServerError, "simpleHandlerWithError Error, user_id: "+userID)
+	if err := hoge(); err != nil {
+		fmt.Println("simpleHandlerWithError user_id:", userID)
+		return c.String(http.StatusInternalServerError, "simpleHandlerWithError Error, user_id: "+userID)
+	}
+	return c.String(http.StatusOK, "simpleHandlerWithError OK, user_id: "+userID)
 }
 
 func postsHandler(c echo.Context) error {
@@ -77,6 +80,10 @@ func slogSetUp(next echo.HandlerFunc) echo.HandlerFunc {
 		slog.SetDefault(slog.New(slogHandler))
 		return next(c)
 	}
+}
+
+func hoge() error {
+	return fmt.Errorf("error")
 }
 
 func oneInFive() bool {
