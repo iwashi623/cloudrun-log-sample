@@ -21,6 +21,10 @@ func main() {
 	e.GET("/posts/:post_id", postHandler)
 	e.GET("/fmt", fmtHandler)
 
+	sampleGroup := e.Group("/simple")
+	sampleGroup.GET("/:user_id", simpleUserHandler)
+	sampleGroup.GET("/:user_id/with_error", simpleUserWithErrorHandler)
+
 	e.GET("/random", func(c echo.Context) error {
 		fmt.Println("start halfHandler")
 		// 1か0をランダムで返す
@@ -40,26 +44,38 @@ func hello(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello, World!")
 }
 
+func simpleUserHandler(c echo.Context) error {
+	userID := c.Param("user_id")
+	fmt.Println("simpleHandler user_id:", userID)
+	return c.String(http.StatusOK, "user_id: "+userID)
+}
+
+func simpleUserWithErrorHandler(c echo.Context) error {
+	userID := c.Param("user_id")
+	fmt.Println("simpleHandler user_id:", userID)
+	return c.String(http.StatusInternalServerError, "user_id: "+userID)
+}
+
 func fmtHandler(c echo.Context) error {
 	fmt.Println("Start fmtHandler")
-	fmt1()
+	// fmt1()
 	fmt.Println("End fmtHandler")
 	return c.String(http.StatusOK, "fmt")
 }
 
-func fmt1() {
-	fmt.Println("fmt1")
-	fmt2()
-}
+// func fmt1() {
+// 	fmt.Println("fmt1")
+// 	fmt2()
+// }
 
-func fmt2() {
-	fmt.Println("fmt2")
-	fmt3()
-}
+// func fmt2() {
+// 	fmt.Println("fmt2")
+// 	fmt3()
+// }
 
-func fmt3() {
-	fmt.Println("fmt3")
-}
+// func fmt3() {
+// 	fmt.Println("fmt3")
+// }
 
 func postsHandler(c echo.Context) error {
 	fmt.Println("postsHandler")
