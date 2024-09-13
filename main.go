@@ -42,7 +42,7 @@ func postsHandler(c echo.Context) error {
 func postHandler(c echo.Context) error {
 	id := c.Param("post_id")
 	fmt.Println("postHandler post_id:", id)
-	return c.String(http.StatusOK, "post")
+	return c.String(http.StatusOK, "post_id: "+id)
 }
 
 func slogSetUp(next echo.HandlerFunc) echo.HandlerFunc {
