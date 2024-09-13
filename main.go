@@ -51,13 +51,13 @@ func hello(c echo.Context) error {
 func simpleUserHandler(c echo.Context) error {
 	userID := c.Param("user_id")
 	fmt.Println("simpleHandler user_id:", userID)
-	return c.String(http.StatusOK, "user_id: "+userID)
+	return c.String(http.StatusOK, "simpleHandler OK, user_id: "+userID)
 }
 
 func simpleUserWithErrorHandler(c echo.Context) error {
 	userID := c.Param("user_id")
-	fmt.Println("simpleHandler user_id:", userID)
-	return c.String(http.StatusInternalServerError, "user_id: "+userID)
+	fmt.Println("simpleHandlerWithError user_id:", userID)
+	return c.String(http.StatusInternalServerError, "simpleHandlerWithError Error, user_id: "+userID)
 }
 
 func postsHandler(c echo.Context) error {
