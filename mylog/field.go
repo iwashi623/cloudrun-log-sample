@@ -10,8 +10,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// echo.Contextが実体となる
-// 不要なメソッドが使われないように、mylog側のInterfaceを使用する
 type myContext interface {
 	Request() *http.Request
 	SetRequest(r *http.Request)
@@ -53,7 +51,6 @@ func GoogleMessageReplacer(groups []string, a slog.Attr) slog.Attr {
 
 type Args map[string]any
 
-// InfoContext INFOレベルのログを出力する
 func InfoContext(dealCtx myContext, msg string, args ...Args) {
 	ctx := dealCtx.Request().Context()
 	ctx = withValue(ctx, "severity", "INFO")
@@ -65,7 +62,6 @@ func InfoContext(dealCtx myContext, msg string, args ...Args) {
 	slog.InfoContext(ctx, msg)
 }
 
-// WarnContext WARNINGレベルのログを出力する
 func WarnContext(dealCtx myContext, msg string, args ...Args) {
 	ctx := dealCtx.Request().Context()
 	ctx = withValue(ctx, "severity", "WARNING")
@@ -77,7 +73,6 @@ func WarnContext(dealCtx myContext, msg string, args ...Args) {
 	slog.WarnContext(ctx, msg)
 }
 
-// ErrorContext ERRORレベルのログを出力する
 func ErrorContext(dealCtx myContext, msg string, err error, args ...Args) {
 	ctx := dealCtx.Request().Context()
 	ctx = withValue(ctx, "severity", "ERROR")
@@ -95,18 +90,16 @@ func ErrorContext(dealCtx myContext, msg string, err error, args ...Args) {
 	slog.ErrorContext(ctx, fmt.Sprintf("%s err=%s", msg, err.Error()))
 }
 
-// WithValue 値をログ出力用のcontextにセットする
 func WithValue(dealCtx myContext, key mylogField, value any) {
 	ctx := dealCtx.Request().Context()
 	ctx = withValue(ctx, key.String(), value)
 	dealCtx.SetRequest(dealCtx.Request().WithContext(ctx))
 }
 
-// WithTrace traceIDをログ出力用のcontextにセットする
 func WithTrace(dealCtx myContext, projectID string) {
 	traceID := ""
 	if traceID = getTraceID(dealCtx.Request()); traceID == "" {
-		traceID = strings.Replace(uuid.New().String(), "-", "", -1) // googleのtraceIDは32文字の16進数ハイフンなしの文字列
+		traceID = strings.Replace(uuid.New().String(), "-", "", -1)
 		WarnContext(dealCtx, "traceID not found in header, generated new traceID")
 	}
 
@@ -116,8 +109,7 @@ func WithTrace(dealCtx myContext, projectID string) {
 	dealCtx.SetRequest(dealCtx.Request().WithContext(ctx))
 }
 
-// headerからtraceIDを抽出する
-// https://moritomo7315.hatenablog.com/entry/go-traceid-logging
+// NOTE: https://moritomo7315.hatenablog.com/entry/go-traceid-logging
 func getTraceID(r *http.Request) string {
 	traceHeader := r.Header.Get("X-Cloud-Trace-Context")
 	traceParts := strings.Split(traceHeader, "/")

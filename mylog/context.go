@@ -11,7 +11,6 @@ var (
 	fields contextKey = "slog_fields"
 )
 
-// withValue 値をログ出力用のcontextにセットする
 func withValue(parent context.Context, key string, val any) context.Context {
 	if parent == nil {
 		panic("cannot create context from nil parent")
