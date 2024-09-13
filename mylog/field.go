@@ -12,7 +12,7 @@ import (
 
 // echo.Contextが実体となる
 // 不要なメソッドが使われないように、mylog側のInterfaceを使用する
-type dealContext interface {
+type mylogContext interface {
 	Request() *http.Request
 	SetRequest(r *http.Request)
 }
@@ -66,7 +66,7 @@ func GoogleMessageReplacer(groups []string, a slog.Attr) slog.Attr {
 type Args map[string]any
 
 // InfoContext INFOレベルのログを出力する
-func InfoContext(dealCtx dealContext, msg string, args ...Args) {
+func InfoContext(dealCtx mylogContext, msg string, args ...Args) {
 	ctx := dealCtx.Request().Context()
 	ctx = withValue(ctx, "severity", "INFO")
 	for _, arg := range args {
@@ -78,7 +78,7 @@ func InfoContext(dealCtx dealContext, msg string, args ...Args) {
 }
 
 // WarnContext WARNINGレベルのログを出力する
-func WarnContext(dealCtx dealContext, msg string, args ...Args) {
+func WarnContext(dealCtx mylogContext, msg string, args ...Args) {
 	ctx := dealCtx.Request().Context()
 	ctx = withValue(ctx, "severity", "WARNING")
 	for _, arg := range args {
@@ -90,7 +90,7 @@ func WarnContext(dealCtx dealContext, msg string, args ...Args) {
 }
 
 // ErrorContext ERRORレベルのログを出力する
-func ErrorContext(dealCtx dealContext, msg string, err error, args ...Args) {
+func ErrorContext(dealCtx mylogContext, msg string, err error, args ...Args) {
 	ctx := dealCtx.Request().Context()
 	ctx = withValue(ctx, "severity", "ERROR")
 	for _, arg := range args {
@@ -108,14 +108,14 @@ func ErrorContext(dealCtx dealContext, msg string, err error, args ...Args) {
 }
 
 // WithValue 値をログ出力用のcontextにセットする
-func WithValue(dealCtx dealContext, key mylogField, value any) {
+func WithValue(dealCtx mylogContext, key mylogField, value any) {
 	ctx := dealCtx.Request().Context()
 	ctx = withValue(ctx, key.String(), value)
 	dealCtx.SetRequest(dealCtx.Request().WithContext(ctx))
 }
 
 // WithTrace traceIDをログ出力用のcontextにセットする
-func WithTrace(dealCtx dealContext, projectID string) {
+func WithTrace(dealCtx mylogContext, projectID string) {
 	traceID := getTraceID(dealCtx.Request())
 	if traceID == "" {
 		traceID = strings.Replace(uuid.New().String(), "-", "", -1) // googleのtraceIDは32文字の16進数ハイフンなしの文字列

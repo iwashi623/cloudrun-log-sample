@@ -4,6 +4,7 @@ import (
 	"cloudrun-log-sample/mylog"
 	"fmt"
 	"log/slog"
+	"math/rand"
 	"net/http"
 	"os"
 
@@ -20,6 +21,16 @@ func main() {
 	e.GET("/posts/:post_id", postHandler)
 	e.GET("/fmt", fmtHandler)
 
+	e.GET("/random", func(c echo.Context) error {
+		fmt.Println("start halfHandler")
+		// 1か0をランダムで返す
+		if oneInFive() {
+			return c.String(http.StatusInternalServerError, "エラーが発生しました")
+		}
+
+		return c.String(http.StatusOK, "成功しました")
+	})
+
 	e.Use(slogSetUp)
 
 	e.Logger.Fatal(e.Start(":9090"))
@@ -30,8 +41,24 @@ func hello(c echo.Context) error {
 }
 
 func fmtHandler(c echo.Context) error {
-	fmt.Println("fmtHandler")
+	fmt.Println("Start fmtHandler")
+	fmt1()
+	fmt.Println("End fmtHandler")
 	return c.String(http.StatusOK, "fmt")
+}
+
+func fmt1() {
+	fmt.Println("fmt1")
+	fmt2()
+}
+
+func fmt2() {
+	fmt.Println("fmt2")
+	fmt3()
+}
+
+func fmt3() {
+	fmt.Println("fmt3")
 }
 
 func postsHandler(c echo.Context) error {
@@ -51,4 +78,8 @@ func slogSetUp(next echo.HandlerFunc) echo.HandlerFunc {
 		slog.SetDefault(slog.New(slogHandler))
 		return next(c)
 	}
+}
+
+func oneInFive() bool {
+	return rand.Intn(5) == 0
 }
