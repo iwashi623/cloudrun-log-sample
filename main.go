@@ -37,9 +37,7 @@ func main() {
 }
 
 func simpleUserHandler(c echo.Context) error {
-	userID := c.Param("user_id")
-	fmt.Println("simpleHandler user_id:", userID)
-	return c.String(http.StatusOK, "simpleHandler OK, user_id: "+userID)
+	return c.String(http.StatusOK, "simpleHandler OK")
 }
 
 func simpleUserWithErrorHandler(c echo.Context) error {
