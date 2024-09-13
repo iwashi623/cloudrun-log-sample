@@ -12,7 +12,7 @@ import (
 
 // echo.Contextが実体となる
 // 不要なメソッドが使われないように、mylog側のInterfaceを使用する
-type mylogContext interface {
+type myContext interface {
 	Request() *http.Request
 	SetRequest(r *http.Request)
 }
@@ -34,20 +34,8 @@ var (
 	Path   = mylogField{keyName: "path"}
 	Query  = mylogField{keyName: "query"}
 
-	// JWT fields
-	UserID         = mylogField{keyName: "user_id"}
-	EmployeeNumber = mylogField{keyName: "employee_number"}
-	TenantID       = mylogField{keyName: "tenant_id"}
-
-	// Custom fields
-	AppointmentID           = mylogField{keyName: "appointment_id"}
-	DealID                  = mylogField{keyName: "deal_id"}
-	AppraisalItemID         = mylogField{keyName: "appraisal_item_id"}
-	AppraisalItemGroupID    = mylogField{keyName: "appraisal_item_group_id"}
-	AppraisalItemCategoryID = mylogField{keyName: "appraisal_item_category_type_id"}
-	BailmentItemID          = mylogField{keyName: "bailment_item_id"}
-	BailmentReceiptID       = mylogField{keyName: "bailment_receipt_id"}
-	SalesContractID         = mylogField{keyName: "sales_contract_id"}
+	// Request fields
+	UserID = mylogField{keyName: "user_id"}
 )
 
 const (
@@ -66,7 +54,7 @@ func GoogleMessageReplacer(groups []string, a slog.Attr) slog.Attr {
 type Args map[string]any
 
 // InfoContext INFOレベルのログを出力する
-func InfoContext(dealCtx mylogContext, msg string, args ...Args) {
+func InfoContext(dealCtx myContext, msg string, args ...Args) {
 	ctx := dealCtx.Request().Context()
 	ctx = withValue(ctx, "severity", "INFO")
 	for _, arg := range args {
@@ -78,7 +66,7 @@ func InfoContext(dealCtx mylogContext, msg string, args ...Args) {
 }
 
 // WarnContext WARNINGレベルのログを出力する
-func WarnContext(dealCtx mylogContext, msg string, args ...Args) {
+func WarnContext(dealCtx myContext, msg string, args ...Args) {
 	ctx := dealCtx.Request().Context()
 	ctx = withValue(ctx, "severity", "WARNING")
 	for _, arg := range args {
@@ -90,7 +78,7 @@ func WarnContext(dealCtx mylogContext, msg string, args ...Args) {
 }
 
 // ErrorContext ERRORレベルのログを出力する
-func ErrorContext(dealCtx mylogContext, msg string, err error, args ...Args) {
+func ErrorContext(dealCtx myContext, msg string, err error, args ...Args) {
 	ctx := dealCtx.Request().Context()
 	ctx = withValue(ctx, "severity", "ERROR")
 	for _, arg := range args {
@@ -108,14 +96,14 @@ func ErrorContext(dealCtx mylogContext, msg string, err error, args ...Args) {
 }
 
 // WithValue 値をログ出力用のcontextにセットする
-func WithValue(dealCtx mylogContext, key mylogField, value any) {
+func WithValue(dealCtx myContext, key mylogField, value any) {
 	ctx := dealCtx.Request().Context()
 	ctx = withValue(ctx, key.String(), value)
 	dealCtx.SetRequest(dealCtx.Request().WithContext(ctx))
 }
 
 // WithTrace traceIDをログ出力用のcontextにセットする
-func WithTrace(dealCtx mylogContext, projectID string) {
+func WithTrace(dealCtx myContext, projectID string) {
 	traceID := getTraceID(dealCtx.Request())
 	if traceID == "" {
 		traceID = strings.Replace(uuid.New().String(), "-", "", -1) // googleのtraceIDは32文字の16進数ハイフンなしの文字列

@@ -13,7 +13,7 @@ import (
 
 func main() {
 	e := echo.New()
-	// projectID := os.Getenv("PROJECT_ID")
+	projectID := os.Getenv("PROJECT_ID")
 
 	simpleGroup := e.Group("/simple")
 	simpleGroup.GET("/:user_id", simpleUserHandler)
@@ -21,17 +21,19 @@ func main() {
 	simpleGroup.GET("/:user_id/multi_log", simpleUserMultilogHandler)
 
 	slogGrop := e.Group("/slog")
-	slogGrop.Use(slogSetUp)
+	slogGrop.Use(initLogger)
+	slogGrop.Use(defaultLogFunc(projectID))
+	slogGrop.GET("/:user_id/multi_log", slogUserMultiHandler)
 
-	e.GET("/random", func(c echo.Context) error {
-		fmt.Println("start halfHandler")
-		// 1か0をランダムで返す
-		if oneInFive() {
-			return c.String(http.StatusInternalServerError, "エラーが発生しました")
-		}
+	// e.GET("/random", func(c echo.Context) error {
+	// 	fmt.Println("start halfHandler")
+	// 	// 1か0をランダムで返す
+	// 	if oneInFive() {
+	// 		return c.String(http.StatusInternalServerError, "エラーが発生しました")
+	// 	}
 
-		return c.String(http.StatusOK, "成功しました")
-	})
+	// 	return c.String(http.StatusOK, "成功しました")
+	// })
 
 	e.Logger.Fatal(e.Start(":9090"))
 }
@@ -56,14 +58,6 @@ func simpleUserMultilogHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "simpleUserMultilogHandler Error")
 	}
 	return c.String(http.StatusOK, "simpleUserMultilogHandler OK")
-}
-
-func slogSetUp(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		slogHandler := mylog.NewHandler(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: mylog.GoogleMessageReplacer}), mylog.SourceOption{Enabled: true, KeyName: mylog.GoogleSourceKeyName})
-		slog.SetDefault(slog.New(slogHandler))
-		return next(c)
-	}
 }
 
 func hoge() error {
@@ -140,6 +134,40 @@ func multiLog() error {
 	return fmt.Errorf("error")
 }
 
-func oneInFive() bool {
-	return rand.Intn(5) == 0
+// func oneInFive() bool {
+// 	return rand.Intn(5) == 0
+// }
+
+func initLogger(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		slogHandler := mylog.NewHandler(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: mylog.GoogleMessageReplacer}), mylog.SourceOption{Enabled: true, KeyName: mylog.GoogleSourceKeyName})
+		slog.SetDefault(slog.New(slogHandler))
+
+		return next(c)
+	}
+}
+
+func defaultLogFunc(projectID string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			mylog.InfoContext(c, "defaultLogFunc", mylog.Args{"project_id": projectID})
+			mylog.WithTrace(c, projectID)
+			mylog.WithValue(c, mylog.Path, c.Path())
+			mylog.WithValue(c, mylog.Method, c.Request().Method)
+			mylog.WithValue(c, mylog.Query, c.QueryString())
+			mylog.InfoContext(c, "Received Request")
+			return next(c)
+		}
+	}
+}
+
+func slogUserMultiHandler(c echo.Context) error {
+	userID := c.Param("user_id")
+	mylog.WithValue(c, mylog.UserID, userID)
+
+	if err := multiLog(); err != nil {
+		mylog.ErrorContext(c, "slogUserMultiHandlerでエラーが発生しました", err)
+		return c.String(http.StatusInternalServerError, "slogUserMultiHandler Error")
+	}
+	return c.String(http.StatusOK, "slogUserMultiHandler OK")
 }
